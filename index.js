@@ -1,9 +1,8 @@
+#!/usr/bin/env node
+
 var dir = require("./util/dir");
-
 var colors = require("colors");
-
 var cpath = require("./util/cpath");
-
 var fs = require('fs');
 
 var mergeObjects = require("./util/merge-objects");
@@ -159,7 +158,7 @@ configNowDeferred.promise.then(function(configNow) {
     });
     installersClone.push({
         name: answers.stylesCompiler,
-        success: colors.cyan(answers.stylesCompiler) + ' has been installed.'
+        success: "\n" + colors.cyan(answers.stylesCompiler) + ' has been installed.'
     });
 
     return install(installersClone);

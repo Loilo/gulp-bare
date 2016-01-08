@@ -108,8 +108,8 @@ var plumberStyleOptions = {
 
 var tmpDir = config.compiler.browserify ? '.tmp' + path.sep : '';
 
-var replaceSep = function (str) {
-	return str.replace(new RegExp('\\\\' + path.sep, 'g'), '/');
+var replaceSep = function(str) {
+	return str.replace(new RegExp('\\' + path.sep, 'g'), '/');
 };
 
 

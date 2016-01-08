@@ -54,7 +54,7 @@ module.exports = [
 
             installers.push({
                 name: 'vinyl-source-stream',
-                success: colors.cyan("vinyl-source-stream") + ' has been installed.\n'
+                success: "\n" + colors.cyan("vinyl-source-stream") + ' has been installed.\n'
             },
             {
                 name: 'rimraf',

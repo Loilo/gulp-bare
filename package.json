@@ -1,19 +1,16 @@
 {
   "name": "gulp-bare",
-  "version": "1.1.1",
-  "description": "gulp scaffolding tool",
+  "version": "1.1.6",
+  "description": "simple gulp scaffolding tool",
   "repository": {
     "type": "git",
     "url": "https://github.com/Loilo/gulp-bare.git"
   },
   "dependencies": {
     "colors": "^1.1.2",
-    "command-line-args": "^2.1.4",
-    "glob": "^6.0.3",
-    "readline-sync": "^1.2.22",
-    "shelljs": "^0.5.3"
+    "glob": "^6.0.3"
   },
   "author": "Florian Reuschel <florian@loilo.de> (http://loilo.de)",
   "license": "MIT",
-  "bin": "bin/bare.js"
+  "bin": "index.js"
 }
