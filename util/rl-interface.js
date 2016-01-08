@@ -1,11 +1,10 @@
-var readline = require('readline');
+var readline = require('readline-sync');
 var int = null;
-module.exports = function () {
-	if (int === null) {
-		int = readline.createInterface({
-			input: process.stdin,
-			output: process.stdout
-		});
-	}
-	return int;
-}
+
+module.exports = function() {
+	return {
+		question: function(msg, cb) {
+			cb(readline.question(msg));
+		}
+	};
+};

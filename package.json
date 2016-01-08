@@ -8,9 +8,12 @@
   },
   "dependencies": {
     "colors": "^1.1.2",
-    "glob": "^6.0.3"
+    "command-line-args": "^2.1.4",
+    "glob": "^6.0.3",
+    "readline-sync": "^1.2.22",
+    "shelljs": "^0.5.3"
   },
   "author": "Florian Reuschel <florian@loilo.de> (http://loilo.de)",
   "license": "MIT",
-  "bin": "index.js"
+  "bin": "bin/bare.js"
 }
