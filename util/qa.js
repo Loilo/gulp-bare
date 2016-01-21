@@ -11,12 +11,14 @@ var askQuestion = function(q, queue, answers) {
 			console.log(befMsg + "\n");
 		});
 	}
+    
+    var defAnswer = typeof q.default === "function" ? q.default(answers) : q.default;
 	rlInterface().question((
         typeof q.question === "string"
         ? q.question
         : q.question(queue, answers)
-    ) + " " + colors.gray("(" + (typeof q.default === "object" ? JSON.stringify(q.default) : q.default) + ")") + " ", function(answer) {
-		if (answer.length === 0) answer = q.default;
+    ) + " " + colors.gray("(" + (typeof defAnswer === "object" ? JSON.stringify(defAnswer) : defAnswer) + ")") + " ", function(answer) {
+		if (answer.length === 0) answer = defAnswer;
 
 		if (q.after) {
 			var after = q.after;

@@ -1,4 +1,5 @@
 var colors = require("colors");
+var path = require("path");
 var replaceSep = require("../../util/cpath").replaceSep;
 var preConfig = require("../../util/pre-config");
 var installers = require("../installers");
@@ -6,10 +7,37 @@ var QA = require("../../util/qa");
 var mergeObjects = require("../../util/merge-objects");
 var isYes = QA.isYes;
 
+var getDetails = function(compiler) {
+    switch (compiler) {
+        case "gulp-sass":
+            return {
+                ext: "scss",
+                dir: "sass"
+            };
+
+        case "gulp-less":
+            return {
+                ext: "less",
+                dir: "less"
+            };
+
+        case "gulp-stylues":
+            return {
+                ext: "styl",
+                dir: "stylues"
+            };
+
+        default:
+            return {
+                ext: "css",
+                dir: "css"
+            };
+    }
+}
+
 module.exports = [
     {
         id: "stylesCompiler",
-        before: ["First about your styles."],
         question: "What's your style compiler module?",
         default: preConfig.compiler.styles.compiler ? preConfig.compiler.styles.compiler : "gulp-sass"
     },
@@ -31,12 +59,18 @@ module.exports = [
     {
         id: "stylesSrcDir",
         question: "The styles source directory?",
-        default: preConfig.src.styles.dir ? replaceSep(preConfig.src.styles.dir) :  "src/sass/"
+        default: function(answers) {
+            return preConfig.src.styles.dir
+                ? replaceSep(preConfig.src.styles.dir)
+                : path.join(replaceSep(answers.srcBase), getDetails(answers.stylesCompiler).dir + "/");
+        }
     },
     {
         id: "stylesSrcFiles",
         question: "The files to keep track of there?",
-        default: preConfig.src.styles.files ? replaceSep(preConfig.src.styles.files) : "**/*.scss"
+        default: function(answers) {
+            return preConfig.src.styles.files ? replaceSep(preConfig.src.styles.files) : "**/*." + getDetails(answers.stylesCompiler).ext;
+        }
     },
     {
         id: "stylesSrcStart",
@@ -60,7 +94,9 @@ module.exports = [
     {
         id: "stylesDst",
         question: "The according styles output directory?",
-        default: preConfig.dist.styles ? replaceSep(preConfig.dist.styles) : "dst/css/",
+        default: function(answers) {
+            return preConfig.dist.styles ? replaceSep(preConfig.dist.styles) : path.join(replaceSep(answers.distBase), "css/");
+        },
         after: ["\nGreat. You've configured your styles. Now let's go for your scripts.\n"]
     },
 ];

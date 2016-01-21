@@ -4,6 +4,11 @@ var preConfig;
 try { preConfig = require(dir + 'config.json'); }
 catch (e) {
     preConfig = {
+        "use": {
+            "scripts": false,
+            "styles": false,
+            "assets": false
+        },
         "src": {
             "scripts": {},
             "styles": {},

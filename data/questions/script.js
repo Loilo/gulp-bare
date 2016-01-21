@@ -1,10 +1,40 @@
 var colors = require("colors");
+var path = require("path");
 var replaceSep = require("../../util/cpath").replaceSep;
 var preConfig = require("../../util/pre-config");
 var cpath = require("../../util/cpath");
 var installers = require("../installers");
 var mergeObjects = require("../../util/merge-objects");
 var isYes = require("../../util/qa").isYes;
+
+var getDetails = function(compiler) {
+    switch (compiler) {
+        case "gulp-tsc":
+        case "gulp-typescript":
+            return {
+                ext: "ts",
+                dir: "typescript"
+            };
+
+        case "gulp-coffee":
+            return {
+                ext: "coffee",
+                dir: "coffee"
+            };
+
+        case "gulp-babel":
+            return {
+                ext: "js",
+                dir: "es6"
+            };
+        
+        default:
+            return {
+                ext: "js",
+                dir: "js"
+            };
+    }
+}
 
 module.exports = [
     {
@@ -30,17 +60,23 @@ module.exports = [
     {
         id: "scriptsSrcDir",
         question: "The scripts source directory?",
-        default: preConfig.src.scripts.dir ? replaceSep(preConfig.src.scripts.dir) : "src/es6/"
+        default: function(answers) {
+            return preConfig.src.scripts.dir ? replaceSep(preConfig.src.scripts.dir) : path.join(replaceSep(answers.srcBase), getDetails(answers.scriptsCompiler).dir, "/");
+        }
     },
     {
         id: "scriptsSrcFiles",
         question: "The files to keep track of there?",
-        default: preConfig.src.scripts.files ? replaceSep(preConfig.src.scripts.files) : "**/*.js"
+        default: function(answers) {
+            return preConfig.src.scripts.files ? replaceSep(preConfig.src.scripts.files) : "**/*." + getDetails(answers.scriptsCompiler).ext;
+        }
     },
     {
         id: "scriptsDst",
         question: "What's the according output directory?",
-        default: preConfig.dist.scripts ? replaceSep(preConfig.dist.scripts) : "dst/js/"
+        default: function(answers) {
+            return preConfig.dist.scripts ? replaceSep(preConfig.dist.scripts) : path.join(replaceSep(answers.distBase), "js/");
+        }
     },
     {
         id: "scriptsBrowserify",

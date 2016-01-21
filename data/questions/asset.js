@@ -1,3 +1,4 @@
+var path = require("path");
 var replaceSep = require("../../util/cpath").replaceSep;
 var preConfig = require("../../util/pre-config");
 var installers = require("../installers");
@@ -7,9 +8,13 @@ var mergeObjects = require("../../util/merge-objects");
 module.exports = [
     {
         id: "assetsSrcDir",
-        before: ["\nLast but not least: asset files."],
+        before: ["\nSo last but not least: asset files."],
         question: "Tell me your assets source directory.",
-        default: preConfig.src.assets.dir ? replaceSep(preConfig.src.assets.dir) : "src/"
+        default: function(answers) {
+            return preConfig.src.assets.dir
+                ? replaceSep(preConfig.src.assets.dir)
+                : path.join(replaceSep(answers.srcBase), "/");
+        }
     },
     {
         id: "assetsSrcPattern",
@@ -30,8 +35,12 @@ module.exports = [
     },
     {
         id: "assetsDst",
-        question: "The assets output directory?",
-        default: preConfig.dist.assets ? replaceSep(preConfig.dist.assets) : "dst/",
+        question: "And where should they go?",
+        default: function(answers) {
+            return preConfig.dist.assets
+                ? replaceSep(preConfig.dist.assets)
+                : path.join(replaceSep(answers.distBase), "/");
+        },
         after: ["\nYou've configured your assets.\n"]
     },
 ];

@@ -10,10 +10,10 @@ var installModule = function (mod, save, verbose) {
     var module;
 	try {
 		module = require(dir + 'node_modules/' + name);
-        if (verbose) console.log("Found " + colors.cyan(name) + " in cache...\n");
+        if (verbose) console.log("Installing " + colors.cyan(name) + " from cache...\n");
 		p.resolve(module);
 	} catch (e) {
-		if (verbose) console.log("Installing " + colors.cyan(name) + "...");
+		if (verbose) console.log("Downloading and installing " + colors.cyan(name) + "...");
 
 		exec('npm install ' + name + (save ? ' --save-dev' : ''), function (err, out, outErr) {
 			if (verbose) {

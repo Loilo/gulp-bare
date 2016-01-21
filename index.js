@@ -33,65 +33,109 @@ configNowDeferred.promise.then(function(configNow) {
         process.exit();
 	}
 
-	console.log("\nGood.");
+	try {
+        fs.accessSync(dir + 'node_modules');
+    } catch (e) {
+        try {
+            fs.mkdirSync(dir + 'node_modules', 511);
+        } catch (e) {
+            console.log("Couldn't create node_modules directory. Sorry.")
+        }
+    }
 
-	try { fs.mkdirSync(dir + 'node_modules', 511); } catch (e) {}
-
-
-    // get questions
-    var styleQuestions = require("./data/questions/style");
-    var scriptQuestions = require("./data/questions/script");
-    var assetQuestions = require("./data/questions/asset");
 
     // ask questions
-	return QA.ask(styleQuestions, scriptQuestions, assetQuestions);
+    var prepareQuestions = require("./data/questions/prepare");
+
+	return QA.ask(prepareQuestions);
 
 }).then(function(qaAnswers) {
-    console.log("That's it, we're ready to go! I'll launch some stuff now, please be patient.");
-
     answers = qaAnswers;
 
-	answers.scriptsSrcDir = cpath.normalize(answers.scriptsSrcDir);
-	answers.stylesSrcDir = cpath.normalize(answers.stylesSrcDir);
-	answers.scriptsDst = cpath.normalize(answers.scriptsDst);
-	answers.stylesDst = cpath.normalize(answers.stylesDst);
+    if (QA.isNo(answers.useStyles) && QA.isNo(answers.useScripts) && QA.isNo(answers.useAssets)) {
+        console.log("K, see ya!");
+        rlInterface().close();
+        process.exit();
+    }
+
+    console.log("That's it, we're ready to go! I'll launch some stuff now, please be patient.");
+
+    var scriptAnswers = {};
+    var scriptCompilerAnswers = {};
+    if (QA.isYes(answers.useScripts)) {
+        answers.scriptsSrcDir = cpath.normalize(answers.scriptsSrcDir);
+        answers.scriptsDst = cpath.normalize(answers.scriptsDst);
+
+        scriptAnswers = {
+            "dir": answers.scriptsSrcDir,
+            "files": answers.scriptsSrcFiles,
+        };
+
+        scriptCompilerAnswers = {
+            "compiler": answers.scriptsCompiler,
+            "options": answers.scriptCompilerOptions
+        };
+    }
+
+    var styleAnswers = {};
+    var styleCompilerAnswers = {};
+    if (QA.isYes(answers.useStyles)) {
+        answers.stylesSrcDir = cpath.normalize(answers.stylesSrcDir);
+        answers.stylesDst = cpath.normalize(answers.stylesDst);
+        
+        styleAnswers = {
+            "dir": answers.stylesSrcDir,
+            "files": answers.stylesSrcFiles,
+            "start": answers.stylesSrcStart,
+            "autoprefixer": answers.stylesAutoprefixer
+        };
+        
+        styleCompilerAnswers = {
+            "compiler": answers.stylesCompiler,
+            "options": answers.stylesCompilerOptions
+        };
+    }
+
+    var assetAnswers = {};
+    if (QA.isYes(answers.useAssets)) {
+        assetAnswers = {
+            "dir": answers.assetsSrcDir,
+            "pattern": answers.assetsSrcPattern
+        };
+    }
 
 	var config = {
+        "use": {
+            "scripts": QA.isYes(answers.useScripts),
+            "styles": QA.isYes(answers.useStyles),
+            "assets": QA.isYes(answers.useAssets)
+        },
 		"src": {
-			"scripts": {
-				"dir": answers.scriptsSrcDir,
-				"files": answers.scriptsSrcFiles,
-				"modules": (answers.scriptsBrowserifyModules && answers.scriptsBrowserifyModules.length) ? answers.scriptsBrowserifyModules : null,
-				"start": (answers.scriptsBrowserifyStart && answers.scriptsBrowserifyStart.length) ? answers.scriptsBrowserifyStart : null
-			},
-			"styles": {
-				"dir": answers.stylesSrcDir,
-				"files": answers.stylesSrcFiles,
-				"start": answers.stylesSrcStart,
-				"autoprefixer": answers.stylesAutoprefixer
-			},
-			"assets": {
-				"dir": answers.assetsSrcDir,
-				"pattern": answers.assetsSrcPattern
-			}
+            "base": answers.srcBase,
+			"scripts": scriptAnswers,
+			"styles": styleAnswers,
+			"assets": assetAnswers
 		},
 		"dist": {
-			"assets": answers.assetsDst,
-			"scripts": answers.scriptsDst,
-			"styles": answers.stylesDst
+            "base": answers.distBase,
+			"assets": answers.assetsDst || null,
+			"scripts": answers.scriptsDst || null,
+			"styles": answers.stylesDst || null
 		},
 		"compiler": {
-			"scripts": {
-                "compiler": answers.scriptsCompiler,
-                "options": answers.scriptCompilerOptions
-            },
-			"styles": {
-                "compiler": answers.stylesCompiler,
-                "options": answers.stylesCompilerOptions
-            },
-			"browserify": answers.scriptsBrowserify
+			"scripts": scriptCompilerAnswers,
+			"styles": styleCompilerAnswers,
+			"browserify": answers.scriptsBrowserify ? {
+				"modules": (answers.scriptsBrowserifyModules && answers.scriptsBrowserifyModules.length)
+                    ? answers.scriptsBrowserifyModules
+                    : null,
+				"start": (answers.scriptsBrowserifyStart && answers.scriptsBrowserifyStart.length)
+                    ? answers.scriptsBrowserifyStart
+                    : null
+            } : false
 		}
 	};
+    console.log(config);
 
 	return cpath.write("config.json", JSON.stringify(config, null, 4));
 
@@ -105,24 +149,36 @@ configNowDeferred.promise.then(function(configNow) {
 
 
 
-	cpath.mkpathSync(answers.assetsSrcDir, dir);
-	console.log(colors.magenta(answers.assetsSrcDir) + " has been created.");
+    if (QA.isYes(answers.useAssets)) {
+        cpath.mkpathSync(answers.assetsSrcDir, dir);
+        console.log(colors.magenta(answers.assetsSrcDir) + " has been created.");
+    }
 
-	cpath.mkpathSync(answers.stylesSrcDir, dir);
-	console.log(colors.magenta(answers.stylesSrcDir) + " has been created.");
+    if (QA.isYes(answers.useStyles)) {
+	   cpath.mkpathSync(answers.stylesSrcDir, dir);
+	   console.log(colors.magenta(answers.stylesSrcDir) + " has been created.");
+    }
 
-	cpath.mkpathSync(answers.scriptsSrcDir, dir);
-	console.log(colors.magenta(answers.scriptsSrcDir) + " has been created.");
+    if (QA.isYes(answers.useScripts)) {
+	   cpath.mkpathSync(answers.scriptsSrcDir, dir);
+	   console.log(colors.magenta(answers.scriptsSrcDir) + " has been created.");
+    }
 
 
-	cpath.mkpathSync(answers.assetsDst, dir);
-	console.log(colors.magenta(answers.assetsDst) + " has been created.");
+    if (QA.isYes(answers.useAssets)) {
+        cpath.mkpathSync(answers.assetsDst, dir);
+        console.log(colors.magenta(answers.assetsDst) + " has been created.");
+    }
 
-	cpath.mkpathSync(answers.stylesDst, dir);
-	console.log(colors.magenta(answers.stylesDst) + " has been created.")
+    if (QA.isYes(answers.useStyles)) {
+        cpath.mkpathSync(answers.stylesDst, dir);
+        console.log(colors.magenta(answers.stylesDst) + " has been created.")
+    }
 
-	cpath.mkpathSync(answers.scriptsDst, dir);
-	console.log(colors.magenta(answers.scriptsDst) + " has been created.")
+    if (QA.isYes(answers.useScripts)) {
+        cpath.mkpathSync(answers.scriptsDst, dir);
+        console.log(colors.magenta(answers.scriptsDst) + " has been created.")
+    }
 
     console.log("\n");
 
@@ -152,14 +208,19 @@ configNowDeferred.promise.then(function(configNow) {
 }).then(function() {
     var installersClone = installers.slice(0);
 
-    installersClone.push({
-        name: answers.scriptsCompiler,
-        success: colors.cyan(answers.scriptsCompiler) + ' has been installed.'
-    });
-    installersClone.push({
-        name: answers.stylesCompiler,
-        success: "\n" + colors.cyan(answers.stylesCompiler) + ' has been installed.'
-    });
+    if (QA.isYes(answers.useScripts)) {
+        installersClone.push({
+            name: answers.scriptsCompiler,
+            success: colors.cyan(answers.scriptsCompiler) + ' has been installed.'
+        });
+    }
+    
+    if (QA.isYes(answers.useStyles)) {
+        installersClone.push({
+            name: answers.stylesCompiler,
+            success: "\n" + colors.cyan(answers.stylesCompiler) + ' has been installed.'
+        });
+    }
 
     return install(installersClone);
 }).then(function () {
