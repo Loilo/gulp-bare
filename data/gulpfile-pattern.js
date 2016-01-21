@@ -116,10 +116,20 @@ var replaceSep = function(str) {
 
 var buildAssets = function () {
     var assetFiles = find(config.src.assets.pattern, config.src.assets.dir);
+    var merge = require('merge-stream');
 
-	return gulp
-		.src(assetFiles)
-		.pipe(gulp.dest(config.dist.assets));
+    var streams = assetFiles.map(function(file) {
+
+        var dest = file.substr(config.src.assets.dir.length).split('/');
+        dest.pop();
+        dest = dest.join('/');
+
+        return gulp
+            .src(file)
+            .pipe(gulp.dest(path.join(config.dist.assets, dest)));
+    });
+
+    return merge.apply(this, streams);
 };
 
 gulp.task('build-assets', buildAssets);
@@ -278,7 +288,7 @@ gulp.task('watch-assets', function () {
 			fs.unlinkSync(config.dist.assets + to);
 		} else {
 			gulp.src(config.src.assets.dir + to)
-				.pipe(gulp.dest(config.dist.assets + toPath));
+				.pipe(gulp.dest(path.join(config.dist.assets, toPath)));
 		}
 	});
 });
