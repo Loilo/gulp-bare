@@ -17,6 +17,12 @@ var beep = require('beepbeep');
 var glob = require('glob');
 var watch = require('gulp-watch');
 
+
+if (config.use.views) {
+    var viewsCompiler = require(config.compiler.views.compiler);
+    var viewsOptions = config.compiler.views.options;
+}
+
 if (config.use.styles) {
     var stylesCompiler = require(config.compiler.styles.compiler);
     var stylesOptions = config.compiler.styles.options;
@@ -113,7 +119,6 @@ var plumberStyleOptions = {
 	}
 };
 
-//var tmpDir = config.compiler.browserify ? '.tmp' + path.sep : '';
 
 var replaceSep = function(str) {
 	return str.replace(new RegExp('\\' + path.sep, 'g'), '/');
@@ -122,6 +127,68 @@ var replaceSep = function(str) {
 
 var buildTasks = [];
 var watchTasks = [];
+
+
+// views
+if (config.use.views) {
+    var buildViews = function () {
+        var viewFiles = find(config.src.views.files, config.src.views.dir);
+        var merge = require('merge-stream');
+
+        var streams = viewFiles.map(function(file) {
+
+            var dest = file.substr(config.src.views.dir.length).split('/');
+            dest.pop();
+            dest = dest.join('/');
+
+            return gulp
+                .src(file)
+                .pipe(plumber(plumberOptions(config.src.views.dir)))
+                .pipe(viewsCompiler(viewsOptions))
+                .pipe(gulp.dest(path.join(config.dist.views, dest)));
+        });
+
+        return merge.apply(this, streams);
+    };
+
+    gulp.task('build-views', buildViews);
+
+
+    gulp.task('watch-views', function () {
+        var options = {
+            unlink: '-'.red + 'Removed',
+            add: '+'.green + 'Added',
+            change: '*'.cyan + 'Changed'
+        };
+
+
+        var viewFiles = find(config.src.views.files, config.src.views.dir, false);
+
+        return watch(viewFiles, function (vinyl) {
+            vinyl.path = replaceSep(vinyl.path);
+            var viewsDir = replaceSep(config.src.views.dir);
+            var to = vinyl.path.split(viewsDir)[1];
+
+            var toPath = to.split('/');
+            toPath.pop();
+            toPath = toPath.join('/');
+            
+            console.log(options[vinyl.event] + ' ' + to.magenta + '...');
+
+            if (vinyl.event === 'unlink') {
+                fs.unlinkSync(config.dist.views + to);
+            } else {
+                gulp.src(config.src.views.dir + to)
+                    .pipe(plumber(plumberOptions(config.src.views.dir)))
+                    .pipe(viewsCompiler(viewsOptions))
+                    .pipe(gulp.dest(path.join(config.dist.views, toPath)));
+            }
+        });
+    });
+    
+    buildTasks.push('build-views');
+    watchTasks.push('watch-views');
+}
 
 
 
@@ -187,6 +254,7 @@ if (config.use.scripts) {
     if (config.compiler.browserify) {
         var browserify = require('browserify');
         var watchify = require('watchify');
+        var rename = require('gulp-rename');
     }
 
 
@@ -202,20 +270,44 @@ if (config.use.scripts) {
 
     if (config.compiler.browserify) {
         var merge = require('merge-stream');
-        var rmdir = require('rimraf');
         var source = require('vinyl-source-stream');
 
         var buildBrowserifyScript = function (file, watch) {
             var props = {
                 cache: {},
                 packageCache: {},
-                entries: [config.dist.scripts + file],
-                paths: [ __dirname + '/' + config.dist.scripts + config.compiler.browserify.modules.slice(0,-1) ],
+                entries: [path.join(config.src.scripts.dir, file)],
+                paths: [
+                    path.join(__dirname, config.compiler.browserify.modules)
+                ],
                 debug : true,
             };
+            for (var prop in config.compiler.browserify.options) {
+                props[prop] = config.compiler.browserify.options[prop];
+            }
+
+            var bundler = browserify(props);
+            
+            if (config.compiler.browserify.transform) {
+                bundler.plugin(config.compiler.browserify.transform, config.compiler.browserify.transformOptions)
+            }
 
             // watchify() if watch requested, otherwise run browserify() once
-            var bundler = watch ? watchify(browserify(props)) : browserify(props);
+            if (watch) {
+                bundler = watchify(bundler);
+                bundler.on('update', function(ids) {
+                    ids.forEach(function(id) {
+                        var filename = id.split(path.join(__dirname, config.src.scripts.dir, '/'))[1];
+                        console.log('*'.cyan + 'Changed ' + filename.magenta);
+                    });
+                });
+            }
+
+
+
+            var basename = path.basename(file).split('.');
+            basename.pop();
+            basename = basename.join('.');
 
             function rebundle() {
                 var stream = bundler.bundle();
@@ -226,6 +318,7 @@ if (config.use.scripts) {
                         this.emit('end'); // Keep gulp from hanging on this task
                     })
                     .pipe(source(file))
+                    .pipe(rename(basename + '.js'))
                     .pipe(gulp.dest(config.dist.scripts));
             }
 
@@ -237,15 +330,11 @@ if (config.use.scripts) {
             return rebundle();
         }
 
-        gulp.task('clear', function () {
-            //rmdir(tmpDir, function(error){});
-        });
-
         gulp.task('build-scripts-browserify', function () {
             var streams = [];
-            var files = glob.sync(config.dist.scripts + config.compiler.browserify.start);
+            var files = glob.sync(path.join(config.src.scripts.dir, config.compiler.browserify.start));
             files.forEach(function (file) {
-                streams.push(buildBrowserifyScript(file.split(replaceSep(config.dist.scripts))[1], false));
+                streams.push(buildBrowserifyScript(file.split(replaceSep(config.src.scripts.dir))[1], false));
             });
 
             return merge.apply(this, streams);
@@ -253,16 +342,16 @@ if (config.use.scripts) {
 
         gulp.task('watch-scripts-browserify', function () {
             var streams = [];
-            var files = glob.sync(config.dist.scripts + config.compiler.browserify.start + '.js');
+            var files = glob.sync(path.join(config.src.scripts.dir, config.compiler.browserify.start));
             files.forEach(function (file) {
-                streams.push(buildBrowserifyScript(file.split(replaceSep(config.dist.scripts))[1], true));
+                streams.push(buildBrowserifyScript(file.split(replaceSep(config.src.scripts.dir))[1], true));
             });
 
             return merge.apply(this, streams);
         });
 
-        gulp.task('build-scripts', ['build-scripts-basic', 'build-scripts-browserify', 'clear']);
-        gulp.task('watch-scripts', ['build-scripts-basic', 'watch-scripts-basic', 'watch-scripts-browserify']);
+        gulp.task('build-scripts', ['build-scripts-browserify']);
+        gulp.task('watch-scripts', ['watch-scripts-browserify']);
     } else {
         gulp.task('build-scripts', ['build-scripts-basic']);
         gulp.task('watch-scripts', ['watch-scripts-basic']);
@@ -285,6 +374,8 @@ if (config.use.scripts) {
             var toPath = to.split('/');
             toPath.pop()
             toPath = toPath.join('/');
+
+            console.log(options[vinyl.event] + ' ' + (to + '.' + ext).magenta + '...');
 
             if (vinyl.event === 'unlink') {
                 fs.unlinkSync(config.dist.scripts + toPath);

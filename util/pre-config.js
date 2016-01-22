@@ -7,7 +7,8 @@ catch (e) {
         "use": {
             "scripts": false,
             "styles": false,
-            "assets": false
+            "assets": false,
+            "views": false
         },
         "src": {
             "scripts": {},

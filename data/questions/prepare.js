@@ -33,6 +33,15 @@ module.exports = [
         }
     },
     {
+        id: "useViews",
+        question: "Do you want to use a views precompiler?",
+        default: preConfig.use.assets ? "yes" : "no",
+        callback: function(answer, queue, answers) {
+            if (QA.isYes(answer))
+                queue.unshift(...require("./views"));
+        }
+    },
+    {
         id: "useAssets",
         question: "Do you want to automatically copy your assets?",
         default: preConfig.use.assets ? "yes" : "no",

@@ -3,6 +3,7 @@
 var dir = require("./util/dir");
 var colors = require("colors");
 var cpath = require("./util/cpath");
+var path = require("path");
 var fs = require('fs');
 
 var mergeObjects = require("./util/merge-objects");
@@ -73,7 +74,7 @@ configNowDeferred.promise.then(function(configNow) {
 
         scriptCompilerAnswers = {
             "compiler": answers.scriptsCompiler,
-            "options": answers.scriptCompilerOptions
+            "options": answers.scriptsCompilerOptions
         };
     }
 
@@ -96,6 +97,23 @@ configNowDeferred.promise.then(function(configNow) {
         };
     }
 
+    var viewAnswers = {};
+    var viewCompilerAnswers = {};
+    if (QA.isYes(answers.useViews)) {
+        answers.viewsSrcDir = cpath.normalize(answers.viewsSrcDir);
+        answers.viewsDst = cpath.normalize(answers.viewsDst);
+        
+        viewAnswers = {
+            "dir": answers.viewsSrcDir,
+            "files": answers.viewsSrcFiles,
+        };
+        
+        viewCompilerAnswers = {
+            "compiler": answers.viewsCompiler,
+            "options": answers.viewsCompilerOptions
+        };
+    }
+
     var assetAnswers = {};
     if (QA.isYes(answers.useAssets)) {
         assetAnswers = {
@@ -108,13 +126,15 @@ configNowDeferred.promise.then(function(configNow) {
         "use": {
             "scripts": QA.isYes(answers.useScripts),
             "styles": QA.isYes(answers.useStyles),
-            "assets": QA.isYes(answers.useAssets)
+            "assets": QA.isYes(answers.useAssets),
+            "views": QA.isYes(answers.useViews),
         },
 		"src": {
             "base": answers.srcBase,
 			"scripts": scriptAnswers,
 			"styles": styleAnswers,
-			"assets": assetAnswers
+			"assets": assetAnswers,
+            "views": viewAnswers,
 		},
 		"dist": {
             "base": answers.distBase,
@@ -125,13 +145,17 @@ configNowDeferred.promise.then(function(configNow) {
 		"compiler": {
 			"scripts": scriptCompilerAnswers,
 			"styles": styleCompilerAnswers,
+            "views": viewCompilerAnswers,
 			"browserify": answers.scriptsBrowserify ? {
 				"modules": (answers.scriptsBrowserifyModules && answers.scriptsBrowserifyModules.length)
                     ? answers.scriptsBrowserifyModules
                     : null,
 				"start": (answers.scriptsBrowserifyStart && answers.scriptsBrowserifyStart.length)
                     ? answers.scriptsBrowserifyStart
-                    : null
+                    : null,
+                "options": answers.scriptsBrowserifyOptions,
+                "transform": answers.scriptsBrowserifyTransform,
+                "transformOptions": answers.scriptsBrowserifyTransformOptions || false,
             } : false
 		}
 	};
@@ -180,6 +204,10 @@ configNowDeferred.promise.then(function(configNow) {
         console.log(colors.magenta(answers.scriptsDst) + " has been created.")
     }
 
+    if (QA.isYes(answers.scriptsBrowserify)) {
+        cpath.mkpathSync(answers.scriptsBrowserifyModules);
+    }
+
     console.log("\n");
 
     var p = Promise.defer();
@@ -219,6 +247,13 @@ configNowDeferred.promise.then(function(configNow) {
         installersClone.push({
             name: answers.stylesCompiler,
             success: "\n" + colors.cyan(answers.stylesCompiler) + ' has been installed.'
+        });
+    }
+    
+    if (QA.isYes(answers.useViews)) {
+        installersClone.push({
+            name: answers.viewsCompiler,
+            success: "\n" + colors.cyan(answers.viewsCompiler) + ' has been installed.'
         });
     }
 
