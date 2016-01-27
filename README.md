@@ -53,7 +53,7 @@ Here's a full listing and (if necessary) explaination of the questions that `gul
 Just some prequesites:
 
 * All pathes and globs are relative to the directory `gulp-bare` runs from unless stated otherwise.
-* (#boolean)Boolean answers accept the following case insensitive truthy / falsy values: "true", "yes", "yeah", "yeh", "ye", "yep", "yo", "yip", "y" / "false", "no", "nah", "nope", "n"
+* Boolean answers accept the following case insensitive truthy / falsy values: "true", "yes", "yeah", "yeh", "ye", "yep", "yo", "yip", "y" / "false", "no", "nah", "nope", "n"
 
   Just because I like it. :)
 * If the answer should be an "object" this means an object parseable by JavaScript's `JSON.parse()`
@@ -103,7 +103,7 @@ So, about the questions themselves:
 
       Your desired compatibility. A [browserlist](https://github.com/ai/browserslist) compatible string.
     
-      If you don't want to use Autoprefixer at all just pass in a [falsy](#boolean) value.
+      If you don't want to use Autoprefixer at all just pass in a falsy value.
 
   1. **The according styles output directory?** (`[dst/]css/`)
 
@@ -153,7 +153,7 @@ So, about the questions themselves:
           
        1. **Use a browserify transform?** (`no`)
        
-          An npm browserify transform module or a [falsy](#boolean) value if none.
+          An npm browserify transform module or a falsy value if none.
 
           *Default value varies depending on chosen precompiler.*
           
