@@ -1,5 +1,5 @@
 # gulp-bare
-`gulp-bare` is as simple scaffolding tool for small gulp projects.
+`gulp-bare` is a simple scaffolding tool for small gulp projects.
 It's capable of setting up a JavaScript, CSS and HTML precompiler for you through a Yeoman-like command line Q&A session.
 
 It's probably not suited to build real apps but I use it regularly for fiddling around with code or for writing small JS libraries.
