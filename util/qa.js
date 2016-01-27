@@ -71,10 +71,10 @@ module.exports = {
     },
 
     isNo: function (str) {
-        return ['no', 'n', 'nope'].indexOf(str.toLowerCase()) !== -1;
+        return ['false', 'no', 'nah', 'n', 'nope'].indexOf(str.toLowerCase()) !== -1;
     },
 
     isYes: function (str) {
-        return ['yes', 'y', 'yeah', 'ye', 'yeh', 'yep', 'yo', 'yip'].indexOf(str.toLowerCase()) !== -1;
+        return ['true', 'yes', 'y', 'yeah', 'ye', 'yeh', 'yep', 'yo', 'yip'].indexOf(str.toLowerCase()) !== -1;
     }
 };

@@ -36,7 +36,7 @@ var getDetails = function(compiler) {
             return {
                 ext: "js",
                 dir: "js",
-                browserifyTransform: false
+                browserifyTransform: "no"
             };
     }
 }

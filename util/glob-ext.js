@@ -5,17 +5,25 @@ var unique = function(arr) {
         return self.indexOf(value) === index;
     })
 };
-var find = function(src, where) {
+var find = function(src, where, concrete) {
+    if (typeof concrete === "undefined")
+        concrete = true;
+
     if (where == null)
         where = '.';
     if (typeof src === "string") {
-        return glob.sync(path.join(where, src));
+        if (concrete)
+            return glob.sync(path.join(where, src));
+        else
+            return path.join(where, src);
     } else if (typeof src === "object") {
         var files = [];
         if (src instanceof Array) {
             for (var i = 0; i < src.length; i++)
-                files = files.concat(find(src[i], where));
-            files = unique(glob.sync(path.join(where, files)));
+                files = files.concat(find(src[i], where, concrete));
+
+            files = unique(files);
+
             return files;
         } else {
             var prefix = '';
@@ -28,21 +36,35 @@ var find = function(src, where) {
                 what = src.what;
             }
             if (src.ext) {
+                var exclude, include;
                 if (typeof src.ext === "string") {
                     patterns = [what + '.' + src.ext];
+                    if (src.ext[0] === '!') {
+                        exclude = [src.ext.substr(1)];
+                    } else {
+                        include = [src.ext];
+                    }
                 } else if (src.ext instanceof Array) {
-                    var exclude = src.ext.filter(function(val) { return val[0] === '!'; }).map(function(val) { return val.subtr(1); });
-                    var include = src.ext.filter(function(val) { return val[0] !== '!'; });
+                    exclude = src.ext.filter(function(val) { return val[0] === '!'; }).map(function(val) { return val.subtr(1); });
+                    include = src.ext.filter(function(val) { return val[0] !== '!'; });
+                }
+
+                if (exclude.length) {
                     patterns.push('!(' + exclude.map(function(ext) {
                         return what + '.' + ext;
                     }).join('|') + ')');
+                }
+                if (include.length) {
                     patterns.push(what + '.{' + include.join(',') + '}');
                 }
             } else {
                 patterns = [what];
             }
             patterns.forEach(function(pattern) {
-                files = files.concat(glob.sync(path.join(where, prefix, pattern)));
+                if (concrete)
+                    files = files.concat(glob.sync(path.join(where, prefix, pattern)));
+                else
+                    files = files.concat(path.join(where, prefix, pattern));
             });
             files = unique(files);
             return files;

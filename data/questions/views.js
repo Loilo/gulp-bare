@@ -45,7 +45,7 @@ module.exports = [
     {
         id: "viewsCompiler",
         question: "What's your view compiler module?",
-        default: preConfig.compiler.views.compiler ? preConfig.compiler.views.compiler : "gulp-sass"
+        default: preConfig.compiler.views.compiler ? preConfig.compiler.views.compiler : "gulp-handlebars"
     },
     {
         id: "viewsCompilerOptions",
@@ -68,7 +68,7 @@ module.exports = [
         default: function(answers) {
             return preConfig.src.views.dir
                 ? replaceSep(preConfig.src.views.dir)
-                : path.join(replaceSep(answers.srcBase), getDetails(answers.viewsCompiler).dir + "/");
+                : path.join(replaceSep(answers.srcBase), "views/");
         }
     },
     {
