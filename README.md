@@ -8,8 +8,20 @@ Just install -- I do recommend to install globally -- with `npm i -g gulp-bare` 
 
 That's pretty mutch it.
 
-## What are the capabilities?
 
+## How to use?
+After initially configuring your project with the steps above, `gulp-bare` exposes the following gulp tasks you can call conveniently just like `gulp [taskname]` from command line.
+
+### build
+Consists of the subtasks `build-styles`, `build-scripts`, `build-views` and `build-assets`. You can as well call those separately if you configured `gulp-bare` to use them. 
+
+### watch
+By analogy with the build tasks, this consists of `watch-styles`, `watch-scripts`, `watch-views` and `watch-assets`. Notice that the watch task won't run a complete `build` task in the beginning so it only really builds anything if any files do change.
+
+To do both building and watching just run both, like `gulp build watch`.
+
+
+## What are the capabilities?
 You will be asked for several things to set up in the following order. Each of them is optional:
 
 ### Styles
@@ -24,7 +36,7 @@ In case you also want to use a view compiler like Jade or HAML.
 ### Assets
 This isn't exactly a precompiler. It's just a copy-and-paste tool to bring everything from source to dist path that hasn't been done by the above compilers.
 
-With that in mind, my usual mini project structure looks like this:
+With that in mind, my usual mini project structure (not using compiled views in this case) looks like this:
 ```
 my-app
 /src
