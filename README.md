@@ -99,13 +99,13 @@ So, about the questions themselves:
     
       *Default value varies depending on chosen precompiler.*
 
-   1. **Autoprefixer browser compability (`last 2 versions`)
+   1. **Autoprefixer browser compability** (`last 2 versions`)
 
       Your desired compatibility. A [browserlist](https://github.com/ai/browserslist) compatible string.
     
       If you don't want to use Autoprefixer at all just pass in a falsy value.
 
-  1. **The according styles output directory?** (`[dst/]css/`)
+   1. **The according styles output directory?** (`[dst/]css/`)
 
      The path to your compiled CSS files.
 
@@ -175,7 +175,6 @@ So, about the questions themselves:
 1. **Do you want to use a views precompiler?** (`yes`)
 
    Boolean answer
-
 
    1. **What's your view compiler module?** (`gulp-handlebars`)
   
