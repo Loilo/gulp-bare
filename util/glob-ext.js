@@ -1,34 +1,46 @@
 var glob = require('glob');
+var minimatch = require('minimatch');
 var path = require('path');
 var unique = function(arr) {
     return arr.filter(function(value, index, self) {
         return self.indexOf(value) === index;
     })
 };
-var find = function(src, where, concrete) {
-    if (typeof concrete === "undefined")
-        concrete = true;
+
+var makeGlobList = function(src, where) {
+    var exclude = [], include = [];
 
     if (where == null)
         where = '.';
     if (typeof src === "string") {
-        if (concrete)
-            return glob.sync(path.join(where, src));
-        else
-            return path.join(where, src);
+        if (src[0] === '!') {
+            exclude = [path.join(where, src.substr(1))];
+        } else {
+            include = [path.join(where, src)];
+        }
+        return {
+            include: include,
+            exclude: exclude
+        }
     } else if (typeof src === "object") {
-        var files = [];
+        var globList = {
+            include: include,
+            exclude: exclude
+        };
         if (src instanceof Array) {
-            for (var i = 0; i < src.length; i++)
-                files = files.concat(find(src[i], where, concrete));
+            for (var i = 0; i < src.length; i++) {
+                var newList = makeGlobList(src[i], where);
+                globList.include = globList.include.concat(newList.include);
+                globList.exclude = globList.exclude.concat(newList.exclude);
+            }
 
-            files = unique(files);
+            globList.include = unique(globList.include);
+            globList.exclude = unique(globList.exclude);
 
-            return files;
+            return globList;
         } else {
             var prefix = '';
-            var what = '*';
-            var patterns = [];
+            var what = '**/*';
             if (src.in) {
                 prefix = src.in;
             }
@@ -36,39 +48,90 @@ var find = function(src, where, concrete) {
                 what = src.what;
             }
             if (src.ext) {
-                var exclude, include;
                 if (typeof src.ext === "string") {
-                    patterns = [what + '.' + src.ext];
                     if (src.ext[0] === '!') {
-                        exclude = [src.ext.substr(1)];
+                        exclude = [path.join(where, what + '.' + src.ext.substr(1))];
+                        include = [];
                     } else {
-                        include = [src.ext];
+                        include = [path.join(where, what + '.' + src.ext)];
+                        exclude = [];
                     }
                 } else if (src.ext instanceof Array) {
-                    exclude = src.ext.filter(function(val) { return val[0] === '!'; }).map(function(val) { return val.subtr(1); });
-                    include = src.ext.filter(function(val) { return val[0] !== '!'; });
-                }
-
-                if (exclude.length) {
-                    patterns.push('!(' + exclude.map(function(ext) {
-                        return what + '.' + ext;
-                    }).join('|') + ')');
-                }
-                if (include.length) {
-                    patterns.push(what + '.{' + include.join(',') + '}');
+                    exclude = src.ext.filter(function(val) { return val[0] === '!'; }).map(function(val) {
+                        return path.join(where, what + '.' + val.substr(1));
+                    });
+                    include = src.ext.filter(function(val) { return val[0] !== '!'; }).map(function(val) {
+                        return path.join(where, what + '.' + val);
+                    });
+                } else {
+                    exclude = [];
+                    include = [];
                 }
             } else {
-                patterns = [what];
+                if (what[0] === '!') {
+                    exclude = [path.join(where, what.substr(1))];
+                } else {
+                    include = [path.join(where, what)];
+                }
+                return {
+                    include: include,
+                    exclude: exclude
+                }
             }
-            patterns.forEach(function(pattern) {
-                if (concrete)
-                    files = files.concat(glob.sync(path.join(where, prefix, pattern)));
-                else
-                    files = files.concat(path.join(where, prefix, pattern));
-            });
-            files = unique(files);
-            return files;
+            include = unique(include);
+            exclude = unique(exclude);
+
+            return {
+                include: include,
+                exclude: exclude
+            };
         }
     }
 }
+
+var find = function(src, where, getFiles) {
+    var globs = makeGlobList(src, where);
+
+    if (!getFiles) {
+        return globs.include.concat(globs.exclude.map(function(val) {
+            return "!" + val;
+        }));
+    }
+
+    var include = globs.include;
+    var exclude = globs.exclude;
+
+    console.log(JSON.stringify(globs, null, 2));
+
+    var files = [];
+    var includeMagically = include.filter(function(inc) {
+        return glob.hasMagic(inc);
+    });
+    var includeRegularly = include.filter(function(inc) {
+        return !glob.hasMagic(inc);
+    });
+
+    includeMagically.forEach(function(includePattern) {
+        files = files.concat(glob.sync(includePattern));
+    });
+
+    files = unique(files);
+
+    files = files.filter(function(file) {
+        var foundInExcludes = exclude.map(function(excludePattern) {
+            return minimatch(file, excludePattern);
+        }).indexOf(true);
+        
+        return foundInExcludes === -1;
+    });
+
+    includeRegularly.forEach(function(includePattern) {
+        files = files.concat(glob.sync(includePattern));
+    });
+    
+    files = unique(files);
+
+    return files;
+}
+
 module.exports = find;

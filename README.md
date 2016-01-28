@@ -48,7 +48,7 @@ With that in mind, my usual mini project structure (not using compiled views in 
 ```
 
 ## The questions
-Here's a full listing and (if necessary) explaination of the questions that `gulp-bare` is going to ask you and their initial default answers. If questions are indented their appearance relies on the answer to the preceding question.
+Here's a full listing and (if necessary) explanation of the questions that `gulp-bare` is going to ask you and their initial default answers. If questions are indented their appearance relies on the answer to the preceding question.
 
 Just some prequesites:
 
@@ -209,12 +209,52 @@ So, about the questions themselves:
 
    1. **Which files should be copied?** (`[".htaccess", { "ext": ["html", "php", "json", "yml", "js", "css", "png", "jpg", "svg", "ttf", "woff", "woff2", "eot"] }]`)
   
+      Caution, long description ahead.
+  
       A glob or an array that may contain
       * globs
-      * objects with an `ext` property, containing a file extension or a list of file extensions. File extensions can be excluded by prepending a "!".
+      * objects with an `ext` property, containing a file extension or a list of file extensions. File extensions can be excluded by prepending a "!". The file name without the extension can be specified using the `what` property on the object which will default to `**.*`.
       * such arrays itself
       
-      *I guess you may have to be careful with using negated globs (prepended "!"), they may still have to be improved.*
+      Exclusions will generally override inclusions while concrete files without glob magic are more specific than exclusions. This means this array:
+      
+      ```
+      [
+          "index.no.js",
+          {
+              "ext": ["js", "!no.js"]
+          }
+      ]
+      ``` 
+      
+      will create this internal representation:
+      ```
+      {
+          "include": [
+              "index.no.js",
+              "**/*.js"
+          ],
+          "exclude": [
+              "**/*.no.js"
+          ]
+      }
+      ```
+      
+      and in the following directory:
+      ```
+      .
+      ..
+      index.no.js
+      foo.js
+      bar.no.js
+      ```
+     
+      it will
+      * match `foo.js` because it's specified in the `ext` property
+      * not match `bar.no.js` because `.no.js` extensions are excluded
+      * match `index.no.js` because the glob does not contain any glob magic and is therefore more specific than the extension exclusion
+     
+      I know this is a little weird and does not cover all cases but I found that it generally does provide enough complexity for not too advanced needs.
 
     1. **And where should they go?** (`[dst/]`)
 
