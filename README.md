@@ -6,7 +6,7 @@ It's probably not suited to build real apps but I use it regularly for fiddling 
 
 Just install -- I do recommend to install globally -- with `npm i -g gulp-bare` and run `gulp-bare` from the commandline in the directory you want to set your app up.
 
-That's pretty mutch it.
+That's pretty much it.
 
 
 ## How to use?
@@ -213,6 +213,8 @@ So, about the questions themselves:
       * globs
       * objects with an `ext` property, containing a file extension or a list of file extensions. File extensions can be excluded by prepending a "!".
       * such arrays itself
+      
+      *I guess you may have to be careful with using negated globs (prepended "!"), they may still have to be improved.*
 
     1. **And where should they go?** (`[dst/]`)
 
