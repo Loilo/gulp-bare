@@ -159,7 +159,6 @@ configNowDeferred.promise.then(function(configNow) {
             } : false
 		}
 	};
-    console.log(config);
 
 	return cpath.write("config.json", JSON.stringify(config, null, 4));
 
@@ -231,7 +230,7 @@ configNowDeferred.promise.then(function(configNow) {
 	} else {
 		p.resolve();
 	}
-    
+
     return p.promise;
 }).then(function() {
     var installersClone = installers.slice(0);

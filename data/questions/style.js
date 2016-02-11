@@ -21,10 +21,10 @@ var getDetails = function(compiler) {
                 dir: "less"
             };
 
-        case "gulp-stylues":
+        case "gulp-stylus":
             return {
                 ext: "styl",
-                dir: "stylues"
+                dir: "stylus"
             };
 
         default:
@@ -75,7 +75,9 @@ module.exports = [
     {
         id: "stylesSrcStart",
         question: "The toplevel starting point(s) of your styles?",
-        default: preConfig.src.styles.start ? replaceSep(preConfig.src.styles.start) : "*.scss"
+        default: function(answers) {
+            return preConfig.src.styles.start ? replaceSep(preConfig.src.styles.start) : "*." + getDetails(answers.stylesCompiler).ext;
+        }
     },
     {
         id: "stylesAutoprefixer",

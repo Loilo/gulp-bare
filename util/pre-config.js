@@ -13,7 +13,8 @@ catch (e) {
         "src": {
             "scripts": {},
             "styles": {},
-            "assets": {}
+            "assets": {},
+            "views": {}
         },
         "dist": {},
         "compiler": {
