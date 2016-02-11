@@ -18,7 +18,8 @@ catch (e) {
         "dist": {},
         "compiler": {
             "styles": {},
-            "scripts": {}
+            "scripts": {},
+            "views": {}
         }
     };
 }
