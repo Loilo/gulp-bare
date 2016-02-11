@@ -140,7 +140,8 @@ configNowDeferred.promise.then(function(configNow) {
             "base": answers.distBase,
 			"assets": answers.assetsDst || null,
 			"scripts": answers.scriptsDst || null,
-			"styles": answers.stylesDst || null
+			"styles": answers.stylesDst || null,
+            "views": answers.viewsDst || null
 		},
 		"compiler": {
 			"scripts": scriptCompilerAnswers,
