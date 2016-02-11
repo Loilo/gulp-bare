@@ -129,8 +129,6 @@ var find = function(src, where, getFiles) {
     var include = globs.include;
     var exclude = globs.exclude;
 
-    console.log(JSON.stringify(globs, null, 2));
-
     var files = [];
     var includeMagically = include.filter(function(inc) {
         return glob.hasMagic(inc);
@@ -164,32 +162,32 @@ var find = function(src, where, getFiles) {
 
 // error handling
 var plumberOptions = function (dir) {
-	return {
-		errorHandler: function (err) {
-			beep();
-			if (err.fileName) {
-				console.log(err.name.red + ' in ' + replaceSep(err.fileName).substr(replaceSep(__dirname).length + 1 + replaceSep(dir).length).magenta);
-				console.log(err.codeFrame);
-			} else {
-				console.log(err.toString());
-			}
-		}
-	};
+    return {
+        errorHandler: function (err) {
+            beep();
+            if (err.fileName) {
+                console.log(err.name.red + ' in ' + replaceSep(err.fileName).substr(replaceSep(__dirname).length + 1 + replaceSep(dir).length).magenta);
+                console.log(err.codeFrame);
+            } else {
+                console.log(err.toString());
+            }
+        }
+    };
 };
 var plumberScriptOptions = plumberOptions(config.src.scripts.dir);
 var plumberStyleOptions = {
-	errorHandler: function (err) {
-		beep();
-		if (err.messageFormatted)
-			console.log(err.messageFormatted);
-		else
-			console.log(err.toString());
-	}
+    errorHandler: function (err) {
+        beep();
+        if (err.messageFormatted)
+            console.log(err.messageFormatted);
+        else
+            console.log(err.toString());
+    }
 };
 
 
 var replaceSep = function(str) {
-	return str.replace(new RegExp('\\' + path.sep, 'g'), '/');
+    return str.replace(new RegExp('\\' + path.sep, 'g'), '/');
 };
 
 
@@ -241,8 +239,6 @@ if (config.use.views) {
             toPath.pop();
             toPath = toPath.join('/');
             
-            console.log(options[vinyl.event] + ' ' + to.magenta + '...');
-
             if (vinyl.event === 'unlink') {
                 fs.unlinkSync(config.dist.views + to);
             } else {
@@ -263,7 +259,7 @@ if (config.use.views) {
 // assets
 if (config.use.assets) {
     var buildAssets = function () {
-        var assetFiles = find(config.src.assets.pattern, config.src.assets.dir);
+        var assetFiles = find(config.src.assets.pattern, config.src.assets.dir, true);
         var merge = require('merge-stream');
 
         var streams = assetFiles.map(function(file) {
