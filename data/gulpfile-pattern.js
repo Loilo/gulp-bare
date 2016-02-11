@@ -234,10 +234,15 @@ if (config.use.views) {
             vinyl.path = replaceSep(vinyl.path);
             var viewsDir = replaceSep(config.src.views.dir);
             var to = vinyl.path.split(viewsDir)[1];
+            var splName = to.split('.');
+            var ext = splName.pop();
+            var name = splName.join('.');
 
             var toPath = to.split('/');
             toPath.pop();
             toPath = toPath.join('/');
+            
+            console.log(options[vinyl.event] + ' ' + (name + '.' + ext).magenta + '...');
             
             if (vinyl.event === 'unlink') {
                 fs.unlinkSync(config.dist.views + to);
