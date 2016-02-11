@@ -200,7 +200,7 @@ var watchTasks = [];
 // views
 if (config.use.views) {
     var buildViews = function () {
-        var viewFiles = find(config.src.views.files, config.src.views.dir);
+        var viewFiles = find(config.src.views.files, config.src.views.dir, true);
         var merge = require('merge-stream');
 
         var streams = viewFiles.map(function(file) {
